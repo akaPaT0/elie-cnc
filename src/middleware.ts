@@ -46,12 +46,26 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is not authenticated, redirect to /admin/login
+  // 1. If user is not authenticated, redirect to /admin/login
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/login';
     url.searchParams.set('redirectTo', pathname);
     return NextResponse.redirect(url);
+  }
+
+  // 2. If ADMIN_EMAILS is set in .env.local, enforce admin email authorization
+  const adminEmailsEnv = process.env.ADMIN_EMAILS;
+  if (adminEmailsEnv) {
+    const allowedAdminEmails = adminEmailsEnv.split(',').map((e) => e.trim().toLowerCase());
+    const userEmail = user.email?.toLowerCase() || '';
+
+    if (!allowedAdminEmails.includes(userEmail)) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/login';
+      url.searchParams.set('error', 'Unauthorized: Your email address is not an authorized administrator.');
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;
