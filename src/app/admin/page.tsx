@@ -33,7 +33,6 @@ export default function AdminDashboard() {
     loadStats();
   }, []);
 
-  const totalDownloads = products.reduce((sum, p) => sum + (p.downloads || 0), 0);
   const totalCatalogValue = products.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
 
   return (
@@ -59,8 +58,8 @@ export default function AdminDashboard() {
           <p className={styles.statValue}>{loading ? '...' : projects.length}</p>
         </div>
         <div className={styles.statCard}>
-          <h3 className={styles.statTitle}>Total File Downloads</h3>
-          <p className={styles.statValue}>{loading ? '...' : totalDownloads.toLocaleString()}</p>
+          <h3 className={styles.statTitle}>Product Categories</h3>
+          <p className={styles.statValue}>{loading ? '...' : categories.length}</p>
         </div>
         <div className={styles.statCard}>
           <h3 className={styles.statTitle}>Catalog Total Value</h3>

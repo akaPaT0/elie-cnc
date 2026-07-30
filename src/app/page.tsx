@@ -39,7 +39,6 @@ export default function Home() {
     return () => observerRef.current?.disconnect();
   }, []);
 
-  const totalDownloads = productList.reduce((acc, p) => acc + (p.downloads || 0), 0);
   const featuredProjects = projectList.slice(0, 4);
   const featuredProducts = productList.filter((p) => p.featured).slice(0, 4);
 
@@ -73,8 +72,8 @@ export default function Home() {
               <span className={styles.statLabel}>Showcase Projects</span>
             </div>
             <div className={styles.statItem}>
-              <span className={styles.statValue}>{totalDownloads > 0 ? totalDownloads : productList.length}</span>
-              <span className={styles.statLabel}>Total Downloads</span>
+              <span className={styles.statValue}>4</span>
+              <span className={styles.statLabel}>File Formats</span>
             </div>
           </div>
         </div>
