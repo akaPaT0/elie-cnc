@@ -62,9 +62,21 @@ export default function ProductDetailPage() {
     );
   }
 
-  const imageList: string[] = (Array.isArray(product.images) && product.images.length > 0)
-    ? product.images
-    : (product.image ? [product.image] : []);
+  let imageList: string[] = [];
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    imageList = product.images;
+  } else if (typeof product.images === 'string' && (product.images as string).trim()) {
+    try {
+      const parsed = JSON.parse(product.images as string);
+      if (Array.isArray(parsed)) imageList = parsed;
+    } catch {
+      imageList = (product.images as string).split(',').map((s) => s.trim()).filter(Boolean);
+    }
+  }
+
+  if (imageList.length === 0 && product.image) {
+    imageList = [product.image];
+  }
 
   const activeImage = imageList[activeImageIndex] || product.image || '';
 
