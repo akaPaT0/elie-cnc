@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './page.module.css';
-import { getCategories, createCategory, deleteCategory } from '@/lib/supabase/api';
+import { getCategories, createCategory, deleteCategory, getProducts } from '@/lib/supabase/api';
 
 export default function CategoriesManager() {
   const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -13,17 +14,18 @@ export default function CategoriesManager() {
     slug: ''
   });
 
-  const fetchCategories = async () => {
+  const loadData = async () => {
     try {
-      const data = await getCategories();
-      if (data) setCategories(data);
+      const [cats, prods] = await Promise.all([getCategories(), getProducts()]);
+      if (cats) setCategories(cats);
+      if (prods) setProducts(prods);
     } catch (e) {
       console.error(e);
     }
   };
 
   useEffect(() => {
-    fetchCategories();
+    loadData();
   }, []);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,7 +40,7 @@ export default function CategoriesManager() {
       await createCategory(formData.name, formData.slug);
       setIsModalOpen(false);
       setFormData({ name: '', slug: '' });
-      fetchCategories();
+      loadData();
     } catch (e) {
       console.error(e);
     }
@@ -48,7 +50,7 @@ export default function CategoriesManager() {
     if (window.confirm('Are you sure you want to delete this category?')) {
       try {
         await deleteCategory(id);
-        fetchCategories();
+        loadData();
       } catch (e) {
         console.error(e);
       }
@@ -67,21 +69,24 @@ export default function CategoriesManager() {
           <tr>
             <th className={styles.th}>Name</th>
             <th className={styles.th}>Slug</th>
-            <th className={styles.th}>Item Count</th>
+            <th className={styles.th}>Product Count</th>
             <th className={styles.th}>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {categories.map(category => (
-            <tr key={category.id} className={styles.tr}>
-              <td className={styles.td}>{category.name}</td>
-              <td className={styles.td}><span className={styles.slug}>{category.slug}</span></td>
-              <td className={styles.td}>{category.itemCount || 0}</td>
-              <td className={styles.td}>
-                <button className={styles.actionButton} onClick={() => handleDelete(category.id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
+          {categories.map(category => {
+            const count = products.filter(p => p.category === category.name).length;
+            return (
+              <tr key={category.id} className={styles.tr}>
+                <td className={styles.td}>{category.name}</td>
+                <td className={styles.td}><span className={styles.slug}>{category.slug}</span></td>
+                <td className={styles.td}>{count}</td>
+                <td className={styles.td}>
+                  <button className={styles.actionButton} onClick={() => handleDelete(category.id)}>Delete</button>
+                </td>
+              </tr>
+            );
+          })}
           {categories.length === 0 && (
             <tr>
               <td colSpan={4} className={styles.td} style={{textAlign: 'center', color: '#9A9A9A'}}>No categories found.</td>

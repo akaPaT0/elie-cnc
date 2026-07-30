@@ -15,8 +15,8 @@ export default function Home() {
 
   useEffect(() => {
     Promise.all([getProducts(), getProjects()]).then(([prods, projs]) => {
-      setProductList(prods);
-      setProjectList(projs);
+      setProductList(prods || []);
+      setProjectList(projs || []);
     });
   }, []);
 
@@ -39,6 +39,7 @@ export default function Home() {
     return () => observerRef.current?.disconnect();
   }, []);
 
+  const totalDownloads = productList.reduce((acc, p) => acc + (p.downloads || 0), 0);
   const featuredProjects = projectList.slice(0, 4);
   const featuredProducts = productList.filter((p) => p.featured).slice(0, 4);
 
@@ -64,16 +65,16 @@ export default function Home() {
           </div>
           <div className={styles.stats}>
             <div className={styles.statItem}>
-              <span className={styles.statValue}>500+</span>
-              <span className={styles.statLabel}>Files Sold</span>
+              <span className={styles.statValue}>{productList.length}</span>
+              <span className={styles.statLabel}>Digital Files</span>
             </div>
             <div className={styles.statItem}>
-              <span className={styles.statValue}>50+</span>
-              <span className={styles.statLabel}>Projects</span>
+              <span className={styles.statValue}>{projectList.length}</span>
+              <span className={styles.statLabel}>Showcase Projects</span>
             </div>
             <div className={styles.statItem}>
-              <span className={styles.statValue}>4.9★</span>
-              <span className={styles.statLabel}>Rating</span>
+              <span className={styles.statValue}>{totalDownloads > 0 ? totalDownloads : productList.length}</span>
+              <span className={styles.statLabel}>Total Downloads</span>
             </div>
           </div>
         </div>
@@ -101,9 +102,15 @@ export default function Home() {
           </Link>
         </div>
         <div className={styles.grid}>
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {featuredProducts.length > 0 ? (
+            featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          ) : (
+            productList.slice(0, 4).map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </div>
       </section>
 

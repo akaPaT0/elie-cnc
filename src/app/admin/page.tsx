@@ -1,57 +1,78 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import styles from './page.module.css';
-
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  fileType: string;
-  price: string;
-}
-
-// Mock Data
-const recentProducts: Product[] = [
-  { id: '1', name: 'Parametric Table Router', category: 'Furniture', fileType: 'DXF', price: '$25.00' },
-  { id: '2', name: 'Minimalist Chair Set', category: 'Furniture', fileType: 'SVG', price: '$15.00' },
-  { id: '3', name: 'Topographic Wall Art', category: 'Decor', fileType: 'STL', price: '$10.00' },
-];
+import { getProducts, getProjects, getCategories } from '@/lib/supabase/api';
+import { Product, Project, Category } from '@/data/mock';
 
 export default function AdminDashboard() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const [prods, projs, cats] = await Promise.all([
+          getProducts(),
+          getProjects(),
+          getCategories(),
+        ]);
+        setProducts(prods || []);
+        setProjects(projs || []);
+        setCategories(cats || []);
+      } catch (err) {
+        console.error('Error loading admin stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadStats();
+  }, []);
+
+  const totalDownloads = products.reduce((sum, p) => sum + (p.downloads || 0), 0);
+  const totalCatalogValue = products.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+
   return (
     <div className={styles.dashboard}>
       <div className={styles.welcomeBanner}>
         <div className={styles.welcomeText}>
           <h1>Workshop Control Center</h1>
-          <p>Manage your CNC files, projects, and site content.</p>
+          <p>Live metrics and management for Elie CNC digital store & showcase.</p>
         </div>
         <div className={styles.actions}>
-          <button className={styles.btnPrimary}>+ Add New File</button>
-          <button className={styles.btnSecondary}>+ Add Project</button>
+          <Link href="/admin/products" className={styles.btnPrimary}>+ Add New File</Link>
+          <Link href="/admin/projects" className={styles.btnSecondary}>+ Add Project</Link>
         </div>
       </div>
 
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <h3 className={styles.statTitle}>Total Files / Products</h3>
-          <p className={styles.statValue}>142</p>
+          <h3 className={styles.statTitle}>Total Digital Files</h3>
+          <p className={styles.statValue}>{loading ? '...' : products.length}</p>
         </div>
         <div className={styles.statCard}>
-          <h3 className={styles.statTitle}>Active Showcase Projects</h3>
-          <p className={styles.statValue}>24</p>
+          <h3 className={styles.statTitle}>Showcase Projects</h3>
+          <p className={styles.statValue}>{loading ? '...' : projects.length}</p>
         </div>
         <div className={styles.statCard}>
-          <h3 className={styles.statTitle}>Total Download Count</h3>
-          <p className={styles.statValue}>8,405</p>
+          <h3 className={styles.statTitle}>Total File Downloads</h3>
+          <p className={styles.statValue}>{loading ? '...' : totalDownloads.toLocaleString()}</p>
         </div>
         <div className={styles.statCard}>
-          <h3 className={styles.statTitle}>Total Inventory Value</h3>
-          <p className={styles.statValue}>$3,450</p>
+          <h3 className={styles.statTitle}>Catalog Total Value</h3>
+          <p className={styles.statValue}>{loading ? '...' : `$${totalCatalogValue.toFixed(2)}`}</p>
         </div>
       </div>
 
       <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Recent Products</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 className={styles.sectionTitle}>Recent Products</h2>
+          <Link href="/admin/products" style={{ color: 'var(--accent-primary)', fontSize: '0.9rem', textDecoration: 'none' }}>View All Products →</Link>
+        </div>
         <div className={styles.tableCard}>
           <table className={styles.table}>
             <thead>
@@ -60,25 +81,34 @@ export default function AdminDashboard() {
                 <th>Category</th>
                 <th>Format</th>
                 <th>Price</th>
+                <th>Downloads</th>
               </tr>
             </thead>
             <tbody>
-              {recentProducts.map(product => (
+              {products.slice(0, 5).map(product => (
                 <tr key={product.id}>
                   <td>{product.name}</td>
                   <td>{product.category}</td>
                   <td><span className={styles.fileBadge}>{product.fileType}</span></td>
-                  <td>{product.price}</td>
+                  <td>${Number(product.price).toFixed(2)}</td>
+                  <td>{product.downloads || 0}</td>
                 </tr>
               ))}
+              {products.length === 0 && !loading && (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                    No products added yet. Click "+ Add New File" above to create your first product.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       <div className={styles.statusBox}>
-        <h3>System Status: Development Mode</h3>
-        <p>Currently running with mock data. Connect Supabase to enable live data operations.</p>
+        <h3>System Status: Supabase Connected</h3>
+        <p>Live PostgreSQL Database synced with <strong>elie_products</strong>, <strong>elie_projects</strong>, and <strong>elie_categories</strong> tables.</p>
       </div>
     </div>
   );
