@@ -31,12 +31,12 @@ export interface Category {
 }
 
 export const categories: Category[] = [
-  { id: 'c1', name: 'Mechanical Parts', slug: 'mechanical-parts', count: 12 },
-  { id: 'c2', name: 'Decorative', slug: 'decorative', count: 8 },
-  { id: 'c3', name: 'Signs & Lettering', slug: 'signs-lettering', count: 15 },
-  { id: 'c4', name: 'Enclosures', slug: 'enclosures', count: 5 },
-  { id: 'c5', name: 'Jigs & Fixtures', slug: 'jigs-fixtures', count: 9 },
-  { id: 'c6', name: 'Artistic', slug: 'artistic', count: 7 },
+  { id: 'c1', name: 'Mechanical Parts', slug: 'mechanical-parts', count: 0 },
+  { id: 'c2', name: 'Decorative', slug: 'decorative', count: 0 },
+  { id: 'c3', name: 'Signs & Lettering', slug: 'signs-lettering', count: 0 },
+  { id: 'c4', name: 'Enclosures', slug: 'enclosures', count: 0 },
+  { id: 'c5', name: 'Jigs & Fixtures', slug: 'jigs-fixtures', count: 0 },
+  { id: 'c6', name: 'Artistic', slug: 'artistic', count: 0 },
 ];
 
 export const projects: Project[] = [
@@ -58,45 +58,45 @@ export const projects: Project[] = [
     category: 'Artistic',
     date: '2023-10-22',
     material: 'Black Walnut',
-    dimensions: '600 x 400 x 45 mm'
+    dimensions: '300 x 200 x 40 mm'
   },
   {
     id: 'proj-3',
-    title: 'Backlit Brass Signage',
-    description: 'Bespoke corporate signage cut from 1/4" brass plate. The letters are reverse-channeled to allow for LED diffusion. Tolerances were kept tight to ensure a perfect press-fit for the acrylic diffusers.',
+    title: 'Carved Hardwood Shop Sign',
+    description: 'A double-sided shop sign with V-carved lettering and an intricate 3D carved border. Cut from 1.5" thick white oak and sealed for outdoor use.',
     images: ['/images/placeholder.jpg'],
     category: 'Signs & Lettering',
-    date: '2023-12-05',
-    material: 'C360 Brass & Acrylic',
-    dimensions: '800 x 250 x 6 mm'
+    date: '2023-12-01',
+    material: 'White Oak',
+    dimensions: '450 x 300 x 38 mm'
   },
   {
     id: 'proj-4',
-    title: 'Modular Workbench Fixturing Plate',
-    description: 'A custom fixture plate with a 50mm grid of M6 threaded holes and 8mm dowel pin holes. Surfaced flat to within 0.02mm across the entire span.',
+    title: 'Precision Vacuum Chuck Fixture',
+    description: 'Custom vacuum fixture for holding thin aluminum sheets during high-speed milling. Features O-ring grooves and integrated vacuum porting.',
     images: ['/images/placeholder.jpg'],
     category: 'Jigs & Fixtures',
     date: '2024-01-10',
-    material: 'Mic 6 Cast Aluminum Tooling Plate',
-    dimensions: '500 x 500 x 20 mm'
+    material: 'MIC-6 Cast Aluminum Plate',
+    dimensions: '200 x 200 x 15 mm'
   },
   {
     id: 'proj-5',
-    title: 'Minimalist Keyboard Case',
-    description: 'A two-part gasket-mounted mechanical keyboard enclosure. The bottom weight is machined from solid copper, contrasting beautifully with the matte black anodized aluminum top case.',
+    title: 'Brass Belt Buckle Prototype',
+    description: 'Intricately engraved brass belt buckle with a 3D relief design. Machined with a 0.5mm ball nose endmill for fine details, then hand-polished.',
     images: ['/images/placeholder.jpg'],
-    category: 'Enclosures',
-    date: '2024-02-18',
-    material: 'Aluminum & Copper',
-    dimensions: '320 x 115 x 30 mm'
+    category: 'Artistic',
+    date: '2024-01-28',
+    material: '360 Brass',
+    dimensions: '80 x 50 x 8 mm'
   },
   {
     id: 'proj-6',
-    title: 'Intricate Geometric Wall Panel',
-    description: 'Parametrically designed wall panel featuring an aperiodic tiling pattern. V-carved into premium birch plywood, creating deep, sharp shadows that change as ambient light moves throughout the day.',
+    title: 'Interlocking Workbench Top',
+    description: 'CNC-cut MFT-style workbench top with a precise 90mm grid of 20mm holes. Interlocking dog-bone joints allow easy assembly without fasteners.',
     images: ['/images/placeholder.jpg'],
-    category: 'Decorative',
-    date: '2023-09-30',
+    category: 'Jigs & Fixtures',
+    date: '2024-02-14',
     material: 'Baltic Birch Plywood',
     dimensions: '1200 x 1200 x 18 mm'
   },
@@ -134,7 +134,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: true,
     compatibility: ['Fusion 360', 'SolidWorks', 'FreeCAD'],
-    downloads: 342
+    downloads: 0
   },
   {
     id: 'prod-2',
@@ -147,7 +147,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: true,
     compatibility: ['VCarve Pro', 'Carveco', 'MeshCAM'],
-    downloads: 128
+    downloads: 0
   },
   {
     id: 'prod-3',
@@ -160,7 +160,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: false,
     compatibility: ['AutoCAD', 'Fusion 360', 'VCarve'],
-    downloads: 890
+    downloads: 0
   },
   {
     id: 'prod-4',
@@ -173,7 +173,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: false,
     compatibility: ['VCarve', 'Easel', 'Carbide Create'],
-    downloads: 215
+    downloads: 0
   },
   {
     id: 'prod-5',
@@ -186,7 +186,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: true,
     compatibility: ['Fusion 360', 'Inventor', 'SolidWorks'],
-    downloads: 67
+    downloads: 0
   },
   {
     id: 'prod-6',
@@ -199,7 +199,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: false,
     compatibility: ['3D Printers', 'MeshCAM'],
-    downloads: 412
+    downloads: 0
   },
   {
     id: 'prod-7',
@@ -212,7 +212,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: false,
     compatibility: ['VCarve', 'Fusion 360', 'AutoCAD'],
-    downloads: 305
+    downloads: 0
   },
   {
     id: 'prod-8',
@@ -225,7 +225,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: false,
     compatibility: ['All 2D Vector Software'],
-    downloads: 540
+    downloads: 0
   },
   {
     id: 'prod-9',
@@ -238,7 +238,7 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: true,
     compatibility: ['Fusion 360', 'SolidWorks', 'FreeCAD'],
-    downloads: 188
+    downloads: 0
   },
   {
     id: 'prod-10',
@@ -251,6 +251,6 @@ export const products: Product[] = [
     image: '/images/placeholder.jpg',
     featured: false,
     compatibility: ['GRBL', 'Mach3', 'LinuxCNC'],
-    downloads: 1024
+    downloads: 0
   }
 ];

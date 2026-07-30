@@ -27,7 +27,8 @@ export default function ProductsManager() {
     category: '',
     images: '',
     featured: false,
-    compatibility: ''
+    compatibility: '',
+    downloads: '0'
   });
 
   const fetchProducts = async () => {
@@ -75,7 +76,8 @@ export default function ProductsManager() {
         category: product.category || (categories.length > 0 ? categories[0].name : ''),
         images: imgStr,
         featured: Boolean(product.featured),
-        compatibility: compStr
+        compatibility: compStr,
+        downloads: (product.downloads !== undefined ? product.downloads : 0).toString()
       });
     } else {
       setSelectedProduct(null);
@@ -88,7 +90,8 @@ export default function ProductsManager() {
         category: categories.length > 0 ? categories[0].name : '',
         images: '',
         featured: false,
-        compatibility: ''
+        compatibility: '',
+        downloads: '0'
       });
     }
     setIsModalOpen(true);
@@ -159,6 +162,7 @@ export default function ProductsManager() {
       image: imgSingle,
       featured: formData.featured,
       compatibility: compArray,
+      downloads: parseInt(formData.downloads, 10) || 0
     };
 
     try {
@@ -345,6 +349,10 @@ export default function ProductsManager() {
               <div className={styles.formGroup}>
                 <label className={styles.label}>Compatibility (comma separated)</label>
                 <input className={styles.input} value={formData.compatibility} onChange={e => setFormData({...formData, compatibility: e.target.value})} placeholder="Fusion 360, SolidWorks, FreeCAD" />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Download Count</label>
+                <input type="number" className={styles.input} value={formData.downloads} onChange={e => setFormData({...formData, downloads: e.target.value})} placeholder="0" />
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.checkboxLabel}>
