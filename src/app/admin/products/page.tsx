@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { getProducts, createProduct, updateProduct, deleteProduct, getCategories } from '@/lib/supabase/api';
+import { uploadProductImage, uploadProductFile } from '@/lib/supabase/storage';
 
 export default function ProductsManager() {
   const [products, setProducts] = useState<any[]>([]);
@@ -12,6 +13,8 @@ export default function ProductsManager() {
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   
   // Form state
@@ -89,6 +92,44 @@ export default function ProductsManager() {
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setFeedback(null);
+    const { url, error } = await uploadProductImage(file);
+    setUploadingImage(false);
+
+    if (error) {
+      setFeedback({ type: 'error', message: `Image upload failed: ${error}` });
+    } else if (url) {
+      setFormData((prev) => ({ ...prev, images: url }));
+      setFeedback({ type: 'success', message: 'Product image uploaded to Supabase Storage!' });
+    }
+  };
+
+  const handleDigitalFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    setFeedback(null);
+    const { fileSize, fileType, error } = await uploadProductFile(file);
+    setUploadingFile(false);
+
+    if (error) {
+      setFeedback({ type: 'error', message: `File upload failed: ${error}` });
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        fileSize: fileSize || prev.fileSize,
+        fileType: fileType || prev.fileType,
+      }));
+      setFeedback({ type: 'success', message: `Digital file uploaded (${fileSize}, ${fileType})!` });
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -239,7 +280,7 @@ export default function ProductsManager() {
 
             <form onSubmit={handleSave}>
               <div className={styles.formGroup}>
-                <label className={styles.label}>Name</label>
+                <label className={styles.label}>Product Name</label>
                 <input required className={styles.input} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
               </div>
               <div className={styles.formGroup}>
@@ -250,6 +291,38 @@ export default function ProductsManager() {
                 <label className={styles.label}>Price ($)</label>
                 <input required type="number" step="0.01" className={styles.input} value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
               </div>
+
+              {/* Upload Image File to Supabase Storage */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>📷 Upload Product Image</label>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className={styles.input}
+                  onChange={handleImageFileChange}
+                  disabled={uploadingImage}
+                />
+                {uploadingImage && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>Uploading image to Supabase Storage...</span>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Image URL (Auto-filled on upload or manual path)</label>
+                <input className={styles.input} value={formData.images} onChange={e => setFormData({...formData, images: e.target.value})} placeholder="/images/placeholder.jpg" />
+              </div>
+
+              {/* Upload Digital CAD/GCODE File to Supabase Storage */}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>📁 Upload CAD / G-Code File (.stl, .gcode, .step, .dxf)</label>
+                <input 
+                  type="file" 
+                  accept=".stl,.gcode,.step,.stp,.dxf,.nc,.tap" 
+                  className={styles.input}
+                  onChange={handleDigitalFileChange}
+                  disabled={uploadingFile}
+                />
+                {uploadingFile && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>Uploading CAD file to Supabase Storage...</span>}
+              </div>
+
               <div className={styles.formGroup}>
                 <label className={styles.label}>File Type</label>
                 <select className={styles.select} value={formData.fileType} onChange={e => setFormData({...formData, fileType: e.target.value})}>
@@ -270,10 +343,6 @@ export default function ProductsManager() {
                 </select>
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>Image URL / Path</label>
-                <input className={styles.input} value={formData.images} onChange={e => setFormData({...formData, images: e.target.value})} placeholder="/images/placeholder.jpg" />
-              </div>
-              <div className={styles.formGroup}>
                 <label className={styles.label}>Compatibility (comma separated)</label>
                 <input className={styles.input} value={formData.compatibility} onChange={e => setFormData({...formData, compatibility: e.target.value})} placeholder="Fusion 360, SolidWorks, FreeCAD" />
               </div>
@@ -285,8 +354,8 @@ export default function ProductsManager() {
               </div>
               
               <div className={styles.modalActions}>
-                <button type="button" className={styles.cancelButton} onClick={() => setIsModalOpen(false)} disabled={saving}>Cancel</button>
-                <button type="submit" className={styles.primaryButton} disabled={saving}>
+                <button type="button" className={styles.cancelButton} onClick={() => setIsModalOpen(false)} disabled={saving || uploadingImage || uploadingFile}>Cancel</button>
+                <button type="submit" className={styles.primaryButton} disabled={saving || uploadingImage || uploadingFile}>
                   {saving ? 'Saving...' : 'Save Product'}
                 </button>
               </div>
