@@ -1,0 +1,186 @@
+.container {
+  padding: 2rem;
+  color: #E8E4DF;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.primaryButton {
+  background-color: #C27A3D;
+  color: #0E0E11;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 300ms ease-out;
+}
+
+.primaryButton:hover {
+  background-color: #D4923F;
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px rgba(194, 122, 61, 0.3);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background-color: #18181E;
+  border: 1px solid #2E2E3A;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 300ms ease-out;
+}
+
+.card:hover {
+  border-color: #C27A3D;
+  transform: translateY(-4px);
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+.cardTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: #E8E4DF;
+}
+
+.cardMeta {
+  color: #9A9A9A;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  border-top: 1px solid #2E2E3A;
+  padding-top: 1rem;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  color: #9A9A9A;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: color 300ms ease-out;
+}
+
+.actionButton:hover {
+  color: #E8E4DF;
+}
+
+.deleteButton:hover {
+  color: #F87171;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(14, 14, 17, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal {
+  background-color: #18181E;
+  border: 1px solid #2E2E3A;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalTitle {
+  font-family: 'Space Grotesk', sans-serif;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #9A9A9A;
+  font-size: 0.875rem;
+}
+
+.input, .textarea, .select {
+  width: 100%;
+  background-color: #0E0E11;
+  border: 1px solid #2E2E3A;
+  color: #E8E4DF;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+.input:focus, .textarea:focus, .select:focus {
+  outline: none;
+  border-color: #C27A3D;
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.cancelButton {
+  background: none;
+  border: 1px solid #2E2E3A;
+  color: #E8E4DF;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 300ms ease-out;
+}
+
+.cancelButton:hover {
+  background-color: #222230;
+}

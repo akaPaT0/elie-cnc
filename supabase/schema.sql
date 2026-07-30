@@ -60,7 +60,15 @@ ALTER TABLE public.elie_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.elie_projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.elie_products ENABLE ROW LEVEL SECURITY;
 
--- Create Policies for Anonymous Public Read Access
+-- Drop existing policies if re-running
+DROP POLICY IF EXISTS "Allow public read access to elie_categories" ON public.elie_categories;
+DROP POLICY IF EXISTS "Allow public read access to elie_projects" ON public.elie_projects;
+DROP POLICY IF EXISTS "Allow public read access to elie_products" ON public.elie_products;
+DROP POLICY IF EXISTS "Allow admin write access to elie_categories" ON public.elie_categories;
+DROP POLICY IF EXISTS "Allow admin write access to elie_projects" ON public.elie_projects;
+DROP POLICY IF EXISTS "Allow admin write access to elie_products" ON public.elie_products;
+
+-- Public READ Policies
 CREATE POLICY "Allow public read access to elie_categories" 
     ON public.elie_categories FOR SELECT USING (true);
 
@@ -69,6 +77,16 @@ CREATE POLICY "Allow public read access to elie_projects"
 
 CREATE POLICY "Allow public read access to elie_products" 
     ON public.elie_products FOR SELECT USING (true);
+
+-- Authenticated Admin MUTATION Policies (Insert, Update, Delete)
+CREATE POLICY "Allow admin write access to elie_categories" 
+    ON public.elie_categories FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow admin write access to elie_projects" 
+    ON public.elie_projects FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow admin write access to elie_products" 
+    ON public.elie_products FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- --------------------------------------------------------
 -- 5. Indexes for Performance
