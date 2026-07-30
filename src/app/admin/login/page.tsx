@@ -11,7 +11,6 @@ function AdminLoginForm() {
   const redirectTo = searchParams.get('redirectTo') || '/admin';
   const urlError = searchParams.get('error');
 
-  const [activeTab, setActiveTab] = useState<'email' | 'oauth'>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(urlError);
@@ -32,15 +31,13 @@ function AdminLoginForm() {
 
     const supabase = createClient();
 
-    // If Supabase environment variables aren't configured yet
     if (!supabase) {
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      await new Promise((resolve) => setTimeout(resolve, 300));
       router.push(redirectTo);
       setIsLoading(false);
       return;
     }
 
-    // Call real Supabase Auth
     const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -48,7 +45,7 @@ function AdminLoginForm() {
 
     if (authError) {
       setIsLoading(false);
-      setError(authError.message || 'Invalid login credentials.');
+      setError(authError.message || 'Invalid email or password.');
       return;
     }
 
@@ -56,13 +53,13 @@ function AdminLoginForm() {
       router.push(redirectTo);
     } else {
       setIsLoading(false);
-      setError('Could not establish session.');
+      setError('Could not establish admin session.');
     }
   };
 
   const handleSignUp = async () => {
     if (!email || !password) {
-      setError('Please enter your email and password to register your admin account.');
+      setError('Please enter your email and password to register.');
       return;
     }
 
@@ -89,34 +86,10 @@ function AdminLoginForm() {
     }
 
     if (data.session) {
-      setMessage('Account created successfully! Logging you in...');
-      setTimeout(() => router.push(redirectTo), 1000);
+      setMessage('Admin account created! Redirecting...');
+      setTimeout(() => router.push(redirectTo), 800);
     } else if (data.user) {
-      setMessage('Registration successful! Please check your email to confirm sign-up, or log in if confirmation is disabled.');
-    }
-  };
-
-  const handleOAuthLogin = async (provider: 'github' | 'google') => {
-    setIsLoading(true);
-    setError(null);
-
-    const supabase = createClient();
-    if (!supabase) {
-      setError(`Supabase client is not configured in .env.local yet.`);
-      setIsLoading(false);
-      return;
-    }
-
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/admin`,
-      },
-    });
-
-    if (oauthError) {
-      setError(oauthError.message);
-      setIsLoading(false);
+      setMessage('Registration successful! Please check your email to confirm sign-up, or sign in.');
     }
   };
 
@@ -133,93 +106,65 @@ function AdminLoginForm() {
         </div>
 
         {error && <div className={styles.errorBanner}>{error}</div>}
-        {message && <div className={styles.errorBanner} style={{ borderColor: 'var(--color-success)', color: 'var(--color-success)' }}>{message}</div>}
-
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${activeTab === 'email' ? styles.active : ''}`}
-            onClick={() => setActiveTab('email')}
-            type="button"
+        {message && (
+          <div
+            className={styles.errorBanner}
+            style={{
+              borderColor: 'var(--color-success, #22C55E)',
+              color: 'var(--color-success, #86EFAC)',
+            }}
           >
-            Email & Password
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === 'oauth' ? styles.active : ''}`}
-            onClick={() => setActiveTab('oauth')}
-            type="button"
-          >
-            OAuth
-          </button>
-        </div>
-
-        {activeTab === 'email' ? (
-          <form className={styles.form} onSubmit={handleEmailLogin}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="email" className={styles.label}>
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                className={styles.input}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="justmyemaile@gmail.com"
-                disabled={isLoading}
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label htmlFor="password" className={styles.label}>
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                className={styles.input}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                disabled={isLoading}
-              />
-            </div>
-
-            <button type="submit" className={styles.button} disabled={isLoading}>
-              {isLoading ? <div className={styles.spinner}></div> : 'Sign In'}
-            </button>
-
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={handleSignUp}
-              disabled={isLoading}
-              style={{ width: '100%', marginTop: '0.75rem' }}
-            >
-              Create Account with this Email
-            </button>
-          </form>
-        ) : (
-          <div className={styles.form}>
-            <button
-              className={`${styles.button} ${styles.oauthButton}`}
-              onClick={() => handleOAuthLogin('github')}
-              disabled={isLoading}
-              type="button"
-            >
-              {isLoading ? <div className={`${styles.spinner} ${styles.oauthSpinner}`}></div> : 'Sign in with GitHub'}
-            </button>
-            <button
-              className={`${styles.button} ${styles.oauthButton}`}
-              onClick={() => handleOAuthLogin('google')}
-              disabled={isLoading}
-              type="button"
-            >
-              {isLoading ? <div className={`${styles.spinner} ${styles.oauthSpinner}`}></div> : 'Sign in with Google'}
-            </button>
+            {message}
           </div>
         )}
+
+        <form className={styles.form} onSubmit={handleEmailLogin}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="email" className={styles.label}>
+              Admin Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              className={styles.input}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="justmyemaile@gmail.com"
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label htmlFor="password" className={styles.label}>
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              className={styles.input}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              disabled={isLoading}
+            />
+          </div>
+
+          <button type="submit" className={styles.button} disabled={isLoading}>
+            {isLoading ? <div className={styles.spinner}></div> : 'Sign In'}
+          </button>
+
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={handleSignUp}
+            disabled={isLoading}
+            style={{ width: '100%', marginTop: '0.75rem' }}
+          >
+            Register Account with this Email
+          </button>
+        </form>
 
         <button
           className={`${styles.button} ${styles.demoButton}`}
