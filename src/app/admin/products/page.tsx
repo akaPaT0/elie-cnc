@@ -16,6 +16,7 @@ export default function ProductsManager() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [customImageUrl, setCustomImageUrl] = useState('');
   
   // Form state
   const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ export default function ProductsManager() {
     fileType: 'STL',
     fileSize: '',
     category: '',
-    images: '',
+    images: [] as string[],
     featured: false,
     compatibility: '',
     downloads: '0'
@@ -56,6 +57,8 @@ export default function ProductsManager() {
 
   const handleOpenModal = (product: any = null) => {
     setFeedback(null);
+    setCustomImageUrl('');
+
     if (product) {
       setSelectedProduct(product);
       
@@ -63,9 +66,12 @@ export default function ProductsManager() {
         ? product.compatibility.join(', ') 
         : (product.compatibility || '');
         
-      const imgStr = Array.isArray(product.images)
-        ? product.images.join(', ')
-        : (product.image || product.images || '');
+      let imgList: string[] = [];
+      if (Array.isArray(product.images) && product.images.length > 0) {
+        imgList = [...product.images];
+      } else if (product.image) {
+        imgList = [product.image];
+      }
 
       setFormData({
         name: product.name || '',
@@ -74,7 +80,7 @@ export default function ProductsManager() {
         fileType: product.fileType || 'STL',
         fileSize: product.fileSize || '',
         category: product.category || (categories.length > 0 ? categories[0].name : ''),
-        images: imgStr,
+        images: imgList,
         featured: Boolean(product.featured),
         compatibility: compStr,
         downloads: (product.downloads !== undefined ? product.downloads : 0).toString()
@@ -88,7 +94,7 @@ export default function ProductsManager() {
         fileType: 'STL',
         fileSize: '',
         category: categories.length > 0 ? categories[0].name : '',
-        images: '',
+        images: [],
         featured: false,
         compatibility: '',
         downloads: '0'
@@ -97,21 +103,66 @@ export default function ProductsManager() {
     setIsModalOpen(true);
   };
 
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleImageFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setUploadingImage(true);
     setFeedback(null);
-    const { url, error } = await uploadProductImage(file);
+
+    const uploadPromises = files.map((file) => uploadProductImage(file));
+    const results = await Promise.all(uploadPromises);
+
+    const successfulUrls = results.map((r) => r.url).filter(Boolean) as string[];
+    const errors = results.map((r) => r.error).filter(Boolean);
+
     setUploadingImage(false);
 
-    if (error) {
-      setFeedback({ type: 'error', message: `Image upload failed: ${error}` });
-    } else if (url) {
-      setFormData((prev) => ({ ...prev, images: url }));
-      setFeedback({ type: 'success', message: 'Product image uploaded to Supabase Storage!' });
+    if (successfulUrls.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...successfulUrls],
+      }));
+      setFeedback({ type: 'success', message: `Uploaded ${successfulUrls.length} image(s) to Supabase Storage!` });
     }
+
+    if (errors.length > 0) {
+      setFeedback({ type: 'error', message: `Upload error: ${errors.join(', ')}` });
+    }
+  };
+
+  const handleAddCustomImageUrl = () => {
+    if (!customImageUrl.trim()) return;
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, customImageUrl.trim()],
+    }));
+    setCustomImageUrl('');
+  };
+
+  const moveImage = (index: number, direction: 'left' | 'right') => {
+    const newImages = [...formData.images];
+    const targetIndex = direction === 'left' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newImages.length) return;
+
+    const temp = newImages[index];
+    newImages[index] = newImages[targetIndex];
+    newImages[targetIndex] = temp;
+
+    setFormData((prev) => ({ ...prev, images: newImages }));
+  };
+
+  const makeCoverImage = (index: number) => {
+    if (index === 0) return;
+    const newImages = [...formData.images];
+    const [selected] = newImages.splice(index, 1);
+    newImages.unshift(selected);
+    setFormData((prev) => ({ ...prev, images: newImages }));
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = formData.images.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, images: newImages }));
   };
 
   const handleDigitalFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,11 +197,7 @@ export default function ProductsManager() {
       ? formData.compatibility
       : [];
 
-    const imgSingle = typeof formData.images === 'string'
-      ? formData.images.split(',')[0]?.trim() || selectedProduct?.image || '/images/placeholder.jpg'
-      : Array.isArray(formData.images)
-      ? formData.images[0] || '/images/placeholder.jpg'
-      : '/images/placeholder.jpg';
+    const mainImage = formData.images[0] || selectedProduct?.image || '/images/placeholder.jpg';
 
     const payload = {
       name: formData.name,
@@ -159,7 +206,8 @@ export default function ProductsManager() {
       fileType: formData.fileType as 'STL' | 'GCODE' | 'STEP' | 'DXF',
       fileSize: formData.fileSize || '1.0 MB',
       category: formData.category || (categories.length > 0 ? categories[0].name : 'General'),
-      image: imgSingle,
+      image: mainImage,
+      images: formData.images.length > 0 ? formData.images : [mainImage],
       featured: formData.featured,
       compatibility: compArray,
       downloads: parseInt(formData.downloads, 10) || 0
@@ -263,7 +311,7 @@ export default function ProductsManager() {
 
       {isModalOpen && (
         <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
+          <div className={styles.modal} style={{ maxWidth: '650px' }}>
             <h2 className={styles.modalTitle}>{selectedProduct ? 'Edit Product' : 'Add Product'}</h2>
             
             {feedback && (
@@ -296,22 +344,63 @@ export default function ProductsManager() {
                 <input required type="number" step="0.01" className={styles.input} value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
               </div>
 
-              {/* Upload Image File to Supabase Storage */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>📷 Upload Product Image</label>
+              {/* Multi-Image Gallery Manager */}
+              <div className={styles.formGroup} style={{ border: '1px solid #2E2E3A', padding: '1rem', borderRadius: '8px', background: '#121217' }}>
+                <label className={styles.label} style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--accent-primary)' }}>
+                  🖼️ Product Images Gallery ({formData.images.length})
+                </label>
+                <p style={{ fontSize: '0.8rem', color: '#9A9A9A', marginBottom: '0.75rem' }}>
+                  Upload multiple photos. The 1st photo is used as the main cover image. Use ← → to reorder or click ★ Cover to set as main thumbnail.
+                </p>
+
                 <input 
                   type="file" 
                   accept="image/*" 
+                  multiple
                   className={styles.input}
-                  onChange={handleImageFileChange}
+                  onChange={handleImageFilesChange}
                   disabled={uploadingImage}
                 />
-                {uploadingImage && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)' }}>Uploading image to Supabase Storage...</span>}
-              </div>
+                {uploadingImage && <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', display: 'block', marginTop: '0.25rem' }}>Processing & converting images to WebP...</span>}
 
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Image URL (Auto-filled on upload or manual path)</label>
-                <input className={styles.input} value={formData.images} onChange={e => setFormData({...formData, images: e.target.value})} placeholder="/images/placeholder.jpg" />
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                  <input 
+                    type="text" 
+                    className={styles.input} 
+                    placeholder="Or paste image URL..." 
+                    value={customImageUrl}
+                    onChange={(e) => setCustomImageUrl(e.target.value)}
+                  />
+                  <button type="button" className={styles.primaryButton} onClick={handleAddCustomImageUrl} style={{ whiteSpace: 'nowrap' }}>+ Add URL</button>
+                </div>
+
+                {/* Thumbnails reorder list */}
+                {formData.images.length > 0 && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
+                    {formData.images.map((imgUrl, idx) => (
+                      <div key={idx} style={{ position: 'relative', background: '#18181E', border: idx === 0 ? '2px solid #C27A3D' : '1px solid #2E2E3A', borderRadius: '6px', overflow: 'hidden', padding: '4px' }}>
+                        <div style={{ position: 'relative', width: '100%', height: '80px' }}>
+                          <img src={imgUrl} alt={`Preview ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }} />
+                          {idx === 0 && (
+                            <span style={{ position: 'absolute', top: 2, left: 2, background: '#C27A3D', color: '#000', fontSize: '0.65rem', fontWeight: 700, padding: '1px 4px', borderRadius: '3px' }}>
+                              COVER
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Controls */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', background: '#0E0E11', borderRadius: '4px', padding: '2px' }}>
+                          <button type="button" onClick={() => moveImage(idx, 'left')} disabled={idx === 0} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: idx === 0 ? 0.3 : 1 }}>←</button>
+                          {idx !== 0 && (
+                            <button type="button" onClick={() => makeCoverImage(idx)} style={{ background: 'none', border: 'none', color: '#C27A3D', cursor: 'pointer', fontSize: '0.7rem' }}>★</button>
+                          )}
+                          <button type="button" onClick={() => moveImage(idx, 'right')} disabled={idx === formData.images.length - 1} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: idx === formData.images.length - 1 ? 0.3 : 1 }}>→</button>
+                          <button type="button" onClick={() => removeImage(idx)} style={{ background: 'none', border: 'none', color: '#F87171', cursor: 'pointer' }}>✕</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Upload Digital CAD/GCODE File to Supabase Storage */}

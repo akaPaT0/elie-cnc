@@ -58,6 +58,7 @@ export async function getProducts(): Promise<Product[]> {
       fileSize: item.file_size || item.fileSize,
       category: item.category,
       image: item.image,
+      images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []),
       featured: Boolean(item.featured),
       compatibility: item.compatibility || [],
       downloads: Number(item.downloads || 0),

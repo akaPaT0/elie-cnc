@@ -18,6 +18,7 @@ export interface Product {
   fileSize: string;
   category: string;
   image: string;
+  images?: string[];
   featured: boolean;
   compatibility: string[];
   downloads: number;

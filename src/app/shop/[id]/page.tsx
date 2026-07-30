@@ -18,6 +18,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function ProductDetailPage() {
         
         if (found) {
           setProduct(found);
+          setActiveImageIndex(0);
           const related = allProducts
             .filter(p => p.category === found.category && p.id !== found.id)
             .slice(0, 3);
@@ -60,6 +62,12 @@ export default function ProductDetailPage() {
     );
   }
 
+  const imageList: string[] = (Array.isArray(product.images) && product.images.length > 0)
+    ? product.images
+    : (product.image ? [product.image] : []);
+
+  const activeImage = imageList[activeImageIndex] || product.image || '';
+
   return (
     <div className={styles.container}>
       <nav className={styles.breadcrumb}>
@@ -71,9 +79,9 @@ export default function ProductDetailPage() {
       <div className={styles.productGrid}>
         <div className={styles.imageColumn}>
           <div className={styles.imageWrapper}>
-            {product.image && !imgError ? (
+            {activeImage && !imgError ? (
               <Image 
-                src={product.image} 
+                src={activeImage} 
                 alt={product.name} 
                 fill 
                 className={styles.image}
@@ -92,6 +100,35 @@ export default function ProductDetailPage() {
             )}
             <div className={styles.fileTypeBadge}>{product.fileType || 'STL'}</div>
           </div>
+
+          {/* Interactive Multi-Image Thumbnails Gallery */}
+          {imageList.length > 1 && (
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+              {imageList.map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => { setActiveImageIndex(idx); setImgError(false); }}
+                  style={{
+                    position: 'relative',
+                    width: '70px',
+                    height: '70px',
+                    borderRadius: '8px',
+                    border: idx === activeImageIndex ? '2px solid #C27A3D' : '1px solid #2E2E3A',
+                    background: '#18181E',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    flexShrink: 0,
+                    opacity: idx === activeImageIndex ? 1 : 0.65,
+                    transition: 'all 0.2s ease-out'
+                  }}
+                >
+                  <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '6px' }} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className={styles.detailsColumn}>
