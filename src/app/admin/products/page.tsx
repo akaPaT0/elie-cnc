@@ -426,8 +426,8 @@ export default function ProductsManager() {
                 </select>
               </div>
               <div className={styles.formGroup}>
-                <label className={styles.label}>File Size</label>
-                <input className={styles.input} value={formData.fileSize} onChange={e => setFormData({...formData, fileSize: e.target.value})} placeholder="e.g. 1.5 MB" />
+                <label className={styles.label}>File Size (Auto-filled on CAD file upload)</label>
+                <input className={styles.input} value={formData.fileSize} onChange={e => setFormData({...formData, fileSize: e.target.value})} placeholder="e.g. 1.5 MB or 450 KB" />
               </div>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Category</label>

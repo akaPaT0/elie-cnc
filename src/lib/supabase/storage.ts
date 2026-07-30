@@ -1,6 +1,17 @@
 import { createClient } from './client';
 
 /**
+ * Format bytes into human readable KB / MB string
+ */
+export function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+/**
  * Converts any image file (PNG, JPG, BMP, HEIC) to a compressed, web-friendly WebP File
  */
 export async function convertToWebP(file: File, maxWidth = 1200, quality = 0.85): Promise<File> {
@@ -104,8 +115,7 @@ export async function uploadProductFile(file: File): Promise<{ path: string | nu
   const supabase = createClient();
 
   const fileExt = (file.name.split('.').pop() || '').toUpperCase();
-  const rawSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-  const fileSize = `${rawSizeMB} MB`;
+  const fileSize = formatBytes(file.size);
   let fileType = 'STL';
 
   if (['GCODE', 'NC', 'TAP', 'NGC'].includes(fileExt)) fileType = 'GCODE';
