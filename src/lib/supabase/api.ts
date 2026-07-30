@@ -58,7 +58,7 @@ export async function getProducts(): Promise<Product[]> {
       fileSize: item.file_size || item.fileSize,
       category: item.category,
       image: item.image,
-      images: Array.isArray(item.images) 
+      images: Array.isArray(item.images) && item.images.length > 0
         ? item.images 
         : (typeof item.images === 'string' && item.images.trim()
             ? (item.images.startsWith('[') ? JSON.parse(item.images) : item.images.split(',').map((s: string) => s.trim()).filter(Boolean))
@@ -91,13 +91,14 @@ export async function createProduct(product: Omit<Product, 'id' | 'downloads'>):
     downloads: 0,
   };
 
+  inMemoryProducts.unshift(newProduct);
+
   const supabase = createClient();
   if (!supabase) {
-    inMemoryProducts.unshift(newProduct);
     return { success: true };
   }
 
-  const { error } = await supabase.from('elie_products').insert({
+  const payload: Record<string, unknown> = {
     id: newProduct.id,
     name: newProduct.name,
     description: newProduct.description,
@@ -106,10 +107,19 @@ export async function createProduct(product: Omit<Product, 'id' | 'downloads'>):
     file_size: newProduct.fileSize,
     category: newProduct.category,
     image: newProduct.image,
+    images: newProduct.images && newProduct.images.length > 0 ? newProduct.images : [newProduct.image],
     featured: newProduct.featured,
     compatibility: newProduct.compatibility,
     downloads: 0,
-  });
+  };
+
+  let { error } = await supabase.from('elie_products').insert(payload);
+
+  if (error && error.message.includes('images')) {
+    delete payload.images;
+    const retry = await supabase.from('elie_products').insert(payload);
+    error = retry.error;
+  }
 
   if (error) {
     return { success: false, error: error.message };
@@ -119,9 +129,10 @@ export async function createProduct(product: Omit<Product, 'id' | 'downloads'>):
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<{ success: boolean; error?: string }> {
+  inMemoryProducts = inMemoryProducts.map((p) => (p.id === id ? { ...p, ...updates } : p));
+
   const supabase = createClient();
   if (!supabase) {
-    inMemoryProducts = inMemoryProducts.map((p) => (p.id === id ? { ...p, ...updates } : p));
     return { success: true };
   }
 
@@ -133,18 +144,28 @@ export async function updateProduct(id: string, updates: Partial<Product>): Prom
   if (updates.fileSize !== undefined) dbUpdates.file_size = updates.fileSize;
   if (updates.category !== undefined) dbUpdates.category = updates.category;
   if (updates.image !== undefined) dbUpdates.image = updates.image;
+  if (updates.images !== undefined) dbUpdates.images = updates.images;
   if (updates.featured !== undefined) dbUpdates.featured = updates.featured;
   if (updates.compatibility !== undefined) dbUpdates.compatibility = updates.compatibility;
+  if (updates.downloads !== undefined) dbUpdates.downloads = updates.downloads;
 
-  const { error } = await supabase.from('elie_products').update(dbUpdates).eq('id', id);
+  let { error } = await supabase.from('elie_products').update(dbUpdates).eq('id', id);
+
+  if (error && error.message.includes('images')) {
+    delete dbUpdates.images;
+    const retry = await supabase.from('elie_products').update(dbUpdates).eq('id', id);
+    error = retry.error;
+  }
+
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
 
 export async function deleteProduct(id: string): Promise<{ success: boolean; error?: string }> {
+  inMemoryProducts = inMemoryProducts.filter((p) => p.id !== id);
+
   const supabase = createClient();
   if (!supabase) {
-    inMemoryProducts = inMemoryProducts.filter((p) => p.id !== id);
     return { success: true };
   }
 
@@ -159,21 +180,33 @@ export async function createProject(project: Omit<Project, 'id'>): Promise<{ suc
     id: `proj-${Date.now()}`,
   };
 
+  inMemoryProjects.unshift(newProject);
+
   const supabase = createClient();
   if (!supabase) {
-    inMemoryProjects.unshift(newProject);
     return { success: true };
   }
 
-  const { error } = await supabase.from('elie_projects').insert(newProject);
+  const { error } = await supabase.from('elie_projects').insert({
+    id: newProject.id,
+    title: newProject.title,
+    description: newProject.description,
+    images: newProject.images,
+    category: newProject.category,
+    date: newProject.date,
+    material: newProject.material,
+    dimensions: newProject.dimensions,
+  });
+
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
 
 export async function updateProject(id: string, updates: Partial<Project>): Promise<{ success: boolean; error?: string }> {
+  inMemoryProjects = inMemoryProjects.map((p) => (p.id === id ? { ...p, ...updates } : p));
+
   const supabase = createClient();
   if (!supabase) {
-    inMemoryProjects = inMemoryProjects.map((p) => (p.id === id ? { ...p, ...updates } : p));
     return { success: true };
   }
 
@@ -183,13 +216,27 @@ export async function updateProject(id: string, updates: Partial<Project>): Prom
 }
 
 export async function deleteProject(id: string): Promise<{ success: boolean; error?: string }> {
+  inMemoryProjects = inMemoryProjects.filter((p) => p.id !== id);
+
   const supabase = createClient();
   if (!supabase) {
-    inMemoryProjects = inMemoryProjects.filter((p) => p.id !== id);
     return { success: true };
   }
 
   const { error } = await supabase.from('elie_projects').delete().eq('id', id);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+export async function deleteCategory(id: string): Promise<{ success: boolean; error?: string }> {
+  inMemoryCategories = inMemoryCategories.filter((c) => c.id !== id);
+
+  const supabase = createClient();
+  if (!supabase) {
+    return { success: true };
+  }
+
+  const { error } = await supabase.from('elie_categories').delete().eq('id', id);
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
@@ -202,25 +249,20 @@ export async function createCategory(name: string, slug: string): Promise<{ succ
     count: 0,
   };
 
+  inMemoryCategories.push(newCat);
+
   const supabase = createClient();
   if (!supabase) {
-    inMemoryCategories.push(newCat);
     return { success: true };
   }
 
-  const { error } = await supabase.from('elie_categories').insert(newCat);
-  if (error) return { success: false, error: error.message };
-  return { success: true };
-}
+  const { error } = await supabase.from('elie_categories').insert({
+    id: newCat.id,
+    name: newCat.name,
+    slug: newCat.slug,
+    count: 0,
+  });
 
-export async function deleteCategory(id: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = createClient();
-  if (!supabase) {
-    inMemoryCategories = inMemoryCategories.filter((c) => c.id !== id);
-    return { success: true };
-  }
-
-  const { error } = await supabase.from('elie_categories').delete().eq('id', id);
   if (error) return { success: false, error: error.message };
   return { success: true };
 }

@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS public.elie_products (
     file_size TEXT NOT NULL,
     category TEXT NOT NULL,
     image TEXT NOT NULL,
+    images TEXT[] DEFAULT '{}',
     featured BOOLEAN DEFAULT false,
     compatibility TEXT[] DEFAULT '{}',
     downloads INTEGER DEFAULT 0,
