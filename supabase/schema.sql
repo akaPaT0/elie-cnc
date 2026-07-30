@@ -1,5 +1,6 @@
 -- ========================================================
 -- Elie CNC — Supabase Database Schema & Seed Data
+-- Prefixed with 'elie_' to isolate from other project tables
 -- Run this script in your Supabase SQL Editor:
 -- https://supabase.com/dashboard/project/_/sql
 -- ========================================================
@@ -8,9 +9,9 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- --------------------------------------------------------
--- 1. Categories Table
+-- 1. Categories Table (elie_categories)
 -- --------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.categories (
+CREATE TABLE IF NOT EXISTS public.elie_categories (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
@@ -19,9 +20,9 @@ CREATE TABLE IF NOT EXISTS public.categories (
 );
 
 -- --------------------------------------------------------
--- 2. Projects Table (CNC Work Showcase)
+-- 2. Projects Table (elie_projects - CNC Work Showcase)
 -- --------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.projects (
+CREATE TABLE IF NOT EXISTS public.elie_projects (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -34,9 +35,9 @@ CREATE TABLE IF NOT EXISTS public.projects (
 );
 
 -- --------------------------------------------------------
--- 3. Products Table (GCode & STL Files Marketplace)
+-- 3. Products Table (elie_products - GCode & STL Files Marketplace)
 -- --------------------------------------------------------
-CREATE TABLE IF NOT EXISTS public.products (
+CREATE TABLE IF NOT EXISTS public.elie_products (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -48,41 +49,41 @@ CREATE TABLE IF NOT EXISTS public.products (
     featured BOOLEAN DEFAULT false,
     compatibility TEXT[] DEFAULT '{}',
     downloads INTEGER DEFAULT 0,
-    file_url TEXT, -- Link to storage bucket for purchased file
+    file_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- --------------------------------------------------------
 -- 4. Enable Row Level Security (RLS)
 -- --------------------------------------------------------
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.elie_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.elie_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.elie_products ENABLE ROW LEVEL SECURITY;
 
 -- Create Policies for Anonymous Public Read Access
-CREATE POLICY "Allow public read access to categories" 
-    ON public.categories FOR SELECT USING (true);
+CREATE POLICY "Allow public read access to elie_categories" 
+    ON public.elie_categories FOR SELECT USING (true);
 
-CREATE POLICY "Allow public read access to projects" 
-    ON public.projects FOR SELECT USING (true);
+CREATE POLICY "Allow public read access to elie_projects" 
+    ON public.elie_projects FOR SELECT USING (true);
 
-CREATE POLICY "Allow public read access to products" 
-    ON public.products FOR SELECT USING (true);
+CREATE POLICY "Allow public read access to elie_products" 
+    ON public.elie_products FOR SELECT USING (true);
 
 -- --------------------------------------------------------
 -- 5. Indexes for Performance
 -- --------------------------------------------------------
-CREATE INDEX IF NOT EXISTS idx_projects_category ON public.projects(category);
-CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category);
-CREATE INDEX IF NOT EXISTS idx_products_file_type ON public.products(file_type);
-CREATE INDEX IF NOT EXISTS idx_products_featured ON public.products(featured);
+CREATE INDEX IF NOT EXISTS idx_elie_projects_category ON public.elie_projects(category);
+CREATE INDEX IF NOT EXISTS idx_elie_products_category ON public.elie_products(category);
+CREATE INDEX IF NOT EXISTS idx_elie_products_file_type ON public.elie_products(file_type);
+CREATE INDEX IF NOT EXISTS idx_elie_products_featured ON public.elie_products(featured);
 
 -- --------------------------------------------------------
 -- 6. Seed Data (Initial Workshop Content)
 -- --------------------------------------------------------
 
 -- Categories Seed Data
-INSERT INTO public.categories (id, name, slug, count) VALUES
+INSERT INTO public.elie_categories (id, name, slug, count) VALUES
 ('c1', 'Mechanical Parts', 'mechanical-parts', 12),
 ('c2', 'Decorative', 'decorative', 8),
 ('c3', 'Signs & Lettering', 'signs-lettering', 15),
@@ -92,7 +93,7 @@ INSERT INTO public.categories (id, name, slug, count) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- Projects Seed Data
-INSERT INTO public.projects (id, title, description, images, category, date, material, dimensions) VALUES
+INSERT INTO public.elie_projects (id, title, description, images, category, date, material, dimensions) VALUES
 ('proj-1', 'Custom Aluminum Motor Bracket', 'Precision-milled motor mounting bracket for a high-torque NEMA 23 stepper. Machined from a single block of 6061-T6 aluminum to ensure zero flex under heavy load.', ARRAY['/images/placeholder.jpg'], 'Mechanical Parts', '2023-11-15', '6061-T6 Aluminum', '120 x 85 x 25 mm'),
 ('proj-2', 'Walnut Topographic Map', 'A 3D topographical map of Yosemite Valley carved into solid black walnut. We used a 1/8" tapered ball nose bit for the finishing pass.', ARRAY['/images/placeholder.jpg'], 'Artistic', '2023-10-22', 'Black Walnut', '600 x 400 x 45 mm'),
 ('proj-3', 'Backlit Brass Signage', 'Bespoke corporate signage cut from 1/4" brass plate. The letters are reverse-channeled to allow for LED diffusion.', ARRAY['/images/placeholder.jpg'], 'Signs & Lettering', '2023-12-05', 'C360 Brass & Acrylic', '800 x 250 x 6 mm'),
@@ -104,7 +105,7 @@ INSERT INTO public.projects (id, title, description, images, category, date, mat
 ON CONFLICT (id) DO NOTHING;
 
 -- Products Seed Data
-INSERT INTO public.products (id, name, description, price, file_type, file_size, category, image, featured, compatibility, downloads) VALUES
+INSERT INTO public.elie_products (id, name, description, price, file_type, file_size, category, image, featured, compatibility, downloads) VALUES
 ('prod-1', 'Universal NEMA 23 Motor Mount', 'Production-ready files for a rigid NEMA 23 stepper motor mount. Includes slotted mounting holes for belt tensioning.', 15.00, 'STEP', '1.2 MB', 'Mechanical Parts', '/images/placeholder.jpg', true, ARRAY['Fusion 360', 'SolidWorks', 'FreeCAD'], 342),
 ('prod-2', 'Parametric Topo Map - Mount Rainier', 'High-resolution STL file for 3D relief carving of Mount Rainier. Scaled and pre-smoothed for 1/16" or 1/8" ball nose endmills.', 25.00, 'STL', '85 MB', 'Artistic', '/images/placeholder.jpg', true, ARRAY['VCarve Pro', 'Carveco', 'MeshCAM'], 128),
 ('prod-3', 'Standard Hold-Down Clamp Set', 'Robust, low-profile hold-down clamps perfect for making out of hardwood or aluminum scrap.', 8.50, 'DXF', '450 KB', 'Jigs & Fixtures', '/images/placeholder.jpg', false, ARRAY['AutoCAD', 'Fusion 360', 'VCarve'], 890),

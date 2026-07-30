@@ -2,14 +2,14 @@ import { createClient } from './client';
 import { projects as mockProjects, products as mockProducts, categories as mockCategories, Project, Product, Category } from '@/data/mock';
 
 /**
- * Fetch all categories from Supabase with fallback to mock data
+ * Fetch all categories from Supabase (elie_categories) with fallback to mock data
  */
 export async function getCategories(): Promise<Category[]> {
   const supabase = createClient();
   if (!supabase) return mockCategories;
 
   try {
-    const { data, error } = await supabase.from('categories').select('*');
+    const { data, error } = await supabase.from('elie_categories').select('*');
     if (error || !data || data.length === 0) return mockCategories;
     return data as Category[];
   } catch {
@@ -18,14 +18,14 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 /**
- * Fetch all showcase projects from Supabase with fallback to mock data
+ * Fetch all showcase projects from Supabase (elie_projects) with fallback to mock data
  */
 export async function getProjects(): Promise<Project[]> {
   const supabase = createClient();
   if (!supabase) return mockProjects;
 
   try {
-    const { data, error } = await supabase.from('projects').select('*').order('date', { ascending: false });
+    const { data, error } = await supabase.from('elie_projects').select('*').order('date', { ascending: false });
     if (error || !data || data.length === 0) return mockProjects;
     return data as Project[];
   } catch {
@@ -34,17 +34,16 @@ export async function getProjects(): Promise<Project[]> {
 }
 
 /**
- * Fetch all products (files) from Supabase with fallback to mock data
+ * Fetch all products/files from Supabase (elie_products) with fallback to mock data
  */
 export async function getProducts(): Promise<Product[]> {
   const supabase = createClient();
   if (!supabase) return mockProducts;
 
   try {
-    const { data, error } = await supabase.from('products').select('*');
+    const { data, error } = await supabase.from('elie_products').select('*');
     if (error || !data || data.length === 0) return mockProducts;
 
-    // Format DB snake_case columns if necessary to match Product interface
     return data.map((item) => ({
       id: item.id,
       name: item.name,
