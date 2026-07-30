@@ -1,25 +1,88 @@
 import { createClient } from './client';
 
 /**
- * Upload an image file (PNG, JPG, WEBP, SVG) to the 'product-images' bucket
+ * Converts any image file (PNG, JPG, BMP, HEIC) to a compressed, web-friendly WebP File
+ */
+export async function convertToWebP(file: File, maxWidth = 1200, quality = 0.85): Promise<File> {
+  // SVG files don't need raster compression
+  if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = new globalThis.Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let width = img.width;
+      let height = img.height;
+
+      // Scale down large images to max 1200px width while maintaining aspect ratio
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          const cleanName = file.name.replace(/\.[^/.]+$/, '') + '.webp';
+          const webpFile = new File([blob], cleanName, { type: 'image/webp' });
+          resolve(webpFile);
+        },
+        'image/webp',
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
+    };
+
+    img.src = objectUrl;
+  });
+}
+
+/**
+ * Upload an image file to the 'product-images' bucket (auto-converts to WebP)
  */
 export async function uploadProductImage(file: File): Promise<{ url: string | null; error?: string }> {
+  // Convert PNG/JPG to WebP before uploading
+  const webpFile = await convertToWebP(file);
   const supabase = createClient();
   
   if (!supabase) {
     // Local fallback preview if Supabase is not connected
-    const fakeUrl = URL.createObjectURL(file);
+    const fakeUrl = URL.createObjectURL(webpFile);
     return { url: fakeUrl };
   }
 
-  const fileExt = file.name.split('.').pop();
+  const fileExt = webpFile.name.split('.').pop() || 'webp';
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
   const filePath = `images/${fileName}`;
 
   const { error: uploadError } = await supabase.storage
     .from('product-images')
-    .upload(filePath, file, {
-      cacheControl: '3600',
+    .upload(filePath, webpFile, {
+      cacheControl: '31536000', // 1 year cache
+      contentType: 'image/webp',
       upsert: true,
     });
 
