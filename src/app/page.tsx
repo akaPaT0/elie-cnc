@@ -1,14 +1,24 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import styles from './page.module.css';
-import { products, projects } from '@/data/mock';
+import { getProducts, getProjects } from '@/lib/supabase/api';
+import { Product, Project } from '@/data/mock';
 import ProductCard from '@/components/ProductCard/ProductCard';
 import ProjectCard from '@/components/ProjectCard/ProjectCard';
 
 export default function Home() {
+  const [productList, setProductList] = useState<Product[]>([]);
+  const [projectList, setProjectList] = useState<Project[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    Promise.all([getProducts(), getProjects()]).then(([prods, projs]) => {
+      setProductList(prods);
+      setProjectList(projs);
+    });
+  }, []);
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -29,8 +39,8 @@ export default function Home() {
     return () => observerRef.current?.disconnect();
   }, []);
 
-  const featuredProjects = projects.slice(0, 4);
-  const featuredProducts = products.filter((p) => p.featured).slice(0, 4);
+  const featuredProjects = projectList.slice(0, 4);
+  const featuredProducts = productList.filter((p) => p.featured).slice(0, 4);
 
   return (
     <main>

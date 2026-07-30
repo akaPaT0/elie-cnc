@@ -2,22 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
-import { projects } from '@/data/mock';
+import { getProjects } from '@/lib/supabase/api';
+import { Project } from '@/data/mock';
 import ProjectCard from '@/components/ProjectCard/ProjectCard';
 
 export default function GalleryPage() {
+  const [projectsList, setProjectsList] = useState<Project[]>([]);
   const [filter, setFilter] = useState('All');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    getProjects().then(setProjectsList);
   }, []);
 
-  const categories = ['All', ...Array.from(new Set(projects.map(p => p.category)))];
+  const categories = ['All', ...Array.from(new Set(projectsList.map(p => p.category)))];
 
   const filteredProjects = filter === 'All' 
-    ? projects 
-    : projects.filter(p => p.category === filter);
+    ? projectsList 
+    : projectsList.filter(p => p.category === filter);
 
   return (
     <div className={styles.container}>

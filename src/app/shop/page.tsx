@@ -1,18 +1,30 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import styles from './page.module.css';
-import { products, categories } from '@/data/mock';
+import { getProducts, getCategories } from '@/lib/supabase/api';
+import { Product, Category } from '@/data/mock';
 import ProductCard from '@/components/ProductCard/ProductCard';
 
 type SortOption = 'price-asc' | 'price-desc' | 'popular' | 'newest';
 const fileTypes = ['STL', 'GCODE', 'STEP', 'DXF'];
 
 export default function Shop() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('popular');
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadData() {
+      const [prods, cats] = await Promise.all([getProducts(), getCategories()]);
+      setProducts(prods);
+      setCategories(cats);
+    }
+    loadData();
+  }, []);
 
   const handleCategoryToggle = (categoryName: string) => {
     setSelectedCategories(prev =>
