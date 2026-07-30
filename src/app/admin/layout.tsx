@@ -4,13 +4,30 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import styles from './layout.module.css';
-
-// import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [userEmail, setUserEmail] = useState<string>('justmyemaile@gmail.com');
+  const [isConnected, setIsConnected] = useState<boolean>(true);
   
+  useEffect(() => {
+    async function checkUserSession() {
+      const supabase = createClient();
+      if (supabase) {
+        setIsConnected(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setUserEmail(user.email);
+        }
+      } else {
+        setIsConnected(false);
+      }
+    }
+    checkUserSession();
+  }, []);
+
   // If we are on the login page, don't show the admin shell wrapper.
   if (pathname === '/admin/login') {
     return <>{children}</>;
@@ -25,11 +42,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return 'Admin';
   };
 
-  const isConnected = false; // Mock state: if real Supabase client is connected, set to true.
-
   const handleSignOut = async () => {
-    // const supabase = createClient();
-    // await supabase.auth.signOut();
+    const supabase = createClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     router.push('/admin/login');
   };
 
@@ -59,7 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className={styles.sidebarFooter}>
           <div className={styles.userInfo}>
-            <span className={styles.userEmail}>admin@eliecnc.com</span>
+            <span className={styles.userEmail}>{userEmail}</span>
             <div className={styles.statusIndicator}>
               <span className={`${styles.statusDot} ${isConnected ? styles.connected : styles.mock}`}></span>
               {isConnected ? 'Supabase Connected' : 'Mock Mode'}
