@@ -1,0 +1,228 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.loading, .notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: var(--text-primary);
+  font-family: var(--font-space-grotesk);
+}
+
+.backLink {
+  margin-top: 1rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-family: var(--font-inter);
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-inter);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  margin-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+  .productGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+}
+
+.imageColumn {
+  position: relative;
+}
+
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--surface);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.image {
+  border-radius: 12px;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-family: var(--font-inter);
+}
+
+.fileTypeBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(194, 122, 61, 0.9);
+  color: #111;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+.detailsColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-family: var(--font-space-grotesk);
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.price {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-space-grotesk);
+}
+
+.fileSize {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  background: var(--surface);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.description {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+
+.metaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.metaItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-inter);
+  font-size: 0.875rem;
+}
+
+.metaItem strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.metaItem span {
+  color: var(--text-secondary);
+  text-align: right;
+  max-width: 60%;
+}
+
+.addToCartBtn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  font-family: var(--font-inter);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  margin-top: auto;
+}
+
+.addToCartBtn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(194, 122, 61, 0.2);
+}
+
+.relatedSection {
+  margin-top: 5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 4rem;
+}
+
+.relatedTitle {
+  font-family: var(--font-space-grotesk);
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
